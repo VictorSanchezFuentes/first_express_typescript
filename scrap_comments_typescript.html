@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>CSS Website Layout</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* Style the header */
+.header {
+  background-color: #f1f1f1;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Style the top navigation bar */
+.topnav {
+  overflow: hidden;
+  background-color: #333;
+}
+
+/* Style the topnav links */
+.topnav a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change color on hover */
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+/* Create three equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 40%;
+  padding: 15px;
+}
+
+/* Clear floats after the columns */
+.row::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media screen and (max-width:600px) {
+  .column {
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Header</h1>
+  <p>Resize the browser window to see the responsive effect.</p>
+</div>
+
+<div class="topnav">
+  <a href="#">Link</a>
+  <a href="#">Link</a>
+  <a href="#">Link</a>
+</div>
+
+<div>
+  <label for="videos">Choose a video:</label>
+
+  <select name="videos" id="video-select"></select>
+</div>
+
+<button id="video-button">Select Video</button>
+
+<div class="row">
+  <div class="column">
+    <h2>Column</h2>
+
+    <vid></vid>
+  </div>
+  
+  <div class="column">
+    <h2 class="comments">Column</h2>
+
+  </div>
+  
+  <!-- <div class="column">
+    <h2>Column</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sit amet pretium urna. Vivamus venenatis velit nec neque ultricies, eget elementum magna tristique. Quisque vehicula, risus eget aliquam placerat, purus leo tincidunt eros, eget luctus quam orci in velit. Praesent scelerisque tortor sed accumsan convallis.</p>
+  </div> -->
+</div>
+
+</body>
+
+<script>
+
+  const initializeSelect = () => {
+    let video_select = document.getElementById("video-select");
+
+    for(let cont=1;cont<=20;cont++){
+
+      let option = `<option value="${cont}">${cont}</option>` 
+      video_select.innerHTML += option;
+    }
+
+  }
+
+  initializeSelect();
+
+
+  let keyVideo = "videos";
+  let keyComments = "comments";
+    
+  async function fetchData(){
+
+    // fetchVideos()
+    // .then(() => {
+
+
+    //   let retrievedVideosString = localStorage.getItem(keyVideo);
+    //   let retrievedVideosObject = JSON.parse(retrievedVideosString);
+
+
+    //   populateVideos(retrievedVideosObject.items);
+    // })
+    // .then(() => fetchComments())
+    // .then(() => {
+    //   let retrievedCommentsString = localStorage.getItem(keyComments);
+    //   let retrievedCommentsObject = JSON.parse(retrievedCommentsString);
+
+
+    //   populateComments(retrievedCommentsObject.items);
+    // });
+
+      
+  }
+
+  async function fetchVideos(){
+    
+    let url = "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=PL7u73KNjy1KsyetpWeksz55vIeIfywaQA&key=AIzaSyBt_ggKUkLcq3sfpYxNpCpaOPunf_vJlNU"
+
+    const response = await fetch(url);
+    responseJSON = await response.json();
+    localStorage.setItem(keyVideo, JSON.stringify(responseJSON));
+  }
+
+  function populateVideos(items){
+    items.forEach((curr) => {
+            let vidTitle = curr.snippet.title;
+            let vidURL = "https://www.youtube.com/watch?v=" + curr.snippet.resourceId.videoId;
+            let vidThumbnail = curr.snippet.thumbnails.high.url;
+            let vidThumbnailHeight = curr.snippet.thumbnails.high.height;
+            let vidThumbnailWidth = curr.snippet.thumbnails.high.width;
+            let markup_anchor = `<figure>
+                                    <img class="vid-thumbnails" height="${vidThumbnailHeight}" width="${vidThumbnailWidth}" src="${vidThumbnail}" alt="${vidTitle}" style="width:100%">
+                                    <figcaption><a href="${vidURL}" target="_blank">${vidTitle}</a></figcaption>
+                                </figure>`;
+        
+            document.querySelector("vid").insertAdjacentHTML("beforeend",markup_anchor);
+        });
+  }
+
+  async function fetchComments(){
+    let url2 = "https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet&maxResults=20&videoId=sYfnDug4HRE&key=AIzaSyBt_ggKUkLcq3sfpYxNpCpaOPunf_vJlNU"
+
+    const response = await fetch(url2)
+    const responseJSON = await response.json();
+    localStorage.setItem(keyComments,JSON.stringify(responseJSON));
+  }
+
+  function populateComments(items){
+    items.forEach((curr) => {
+            let commentContent = curr.snippet.topLevelComment.snippet.textDisplay;
+            let authorName = curr.snippet.topLevelComment.snippet.authorDisplayName;
+            let commentThumbnail = curr.snippet.topLevelComment.snippet.authorProfileImageUrl;
+                  let width = document.querySelector(".vid-thumbnails").getAttribute("width");
+                  let height = document.getElementsByClassName("vid-thumbnails")[0].getAttribute("height");
+
+
+                  let markup_anchor = `<span>
+                                          <img src="${commentThumbnail}" alt="${authorName}" width:"${width}" height:"${height}">
+                                          <p>${commentContent}</p>
+                                      </span>`;
+              
+                  document.getElementsByClassName("comments")[0].insertAdjacentHTML("afterend",markup_anchor);
+    });
+  }
+  
+  fetchData();
+
+
+  function uploadVideo(){
+    let retrievedVideosString = localStorage.getItem(keyVideo);
+    let retrievedVideosObject = JSON.parse(retrievedVideosString);
+
+    let videoNumber = document.getElementById("video-select").value;
+
+
+    populateSingleVideo(retrievedVideosObject.items, videoNumber)
+    
+    
+  }
+
+  function populateSingleVideo(items, value){
+
+    
+      let vidTitle = items[value].snippet.title;
+      let vidURL = "https://www.youtube.com/watch?v=" + items[value].snippet.resourceId.videoId;
+      let vidThumbnail = items[value].snippet.thumbnails.high.url;
+      let vidThumbnailHeight = items[value].snippet.thumbnails.high.height;
+      let vidThumbnailWidth = items[value].snippet.thumbnails.high.width;
+      let markup_anchor = `<figure>
+                              <img class="vid-thumbnails" height="${vidThumbnailHeight}" width="${vidThumbnailWidth}" src="${vidThumbnail}" alt="${vidTitle}" style="width:100%">
+                              <figcaption><a href="${vidURL}" target="_blank">${vidTitle}</a></figcaption>
+                          </figure>`;
+  
+      document.querySelector("vid").insertAdjacentHTML("beforeend",markup_anchor);
+
+
+  }
+
+  document.getElementById("video-button").addEventListener("click", () =>  uploadVideo());
+
+  window.onbeforeunload = (event) => {
+    
+    localStorage.removeItem(keyComments);
+    localStorage.removeItem(keyVideo);
+
+    
+
+};
+
+
+</script>
+
+
+</html>
+
+
